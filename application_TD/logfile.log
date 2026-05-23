@@ -1,0 +1,16 @@
+[2026-04-28 13:44:12,483.483] INFO [18272] - Started server process [5576]
+[2026-04-28 13:44:12,484.484] INFO [18272] - Waiting for application startup.
+[2026-04-28 13:44:12,485.485] INFO [18272] - Application startup complete.
+[2026-04-28 13:44:12,485.485] INFO [18272] - Uvicorn running on http://0.0.0.0:6934 (Press CTRL+C to quit)
+[2026-04-28 13:45:23,560.560] INFO [18272] - Shutting down
+[2026-04-28 13:45:23,661.661] INFO [18272] - Waiting for application shutdown.
+[2026-04-28 13:45:23,662.662] INFO [18272] - Application shutdown complete.
+[2026-04-28 13:45:23,663.663] INFO [18272] - Finished server process [5576]
+[2026-04-28 13:45:41,142.142] INFO [18076] - Started server process [11960]
+[2026-04-28 13:45:41,142.142] INFO [18076] - Waiting for application startup.
+[2026-04-28 13:45:41,144.144] INFO [18076] - Application startup complete.
+[2026-04-28 13:45:41,144.144] INFO [18076] - Uvicorn running on http://0.0.0.0:6934 (Press CTRL+C to quit)
+[2026-04-28 13:46:10,944.944] INFO [18076] - Shutting down
+[2026-04-28 13:46:11,049.049] INFO [18076] - Waiting for application shutdown.
+[2026-04-28 13:46:11,050.050] INFO [18076] - Application shutdown complete.
+[2026-04-28 13:46:11,051.051] INFO [18076] - Finished server process [11960]

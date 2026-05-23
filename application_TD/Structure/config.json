@@ -1,0 +1,17 @@
+{
+  "ai_model": "gemma-3-pass",
+  "top_k_documents": 5,
+  "temperature": 0.2,
+  "chunk_size": 500,
+  "chunk_overlap":50,
+  "embedding_URL": "http://172.17.11.82:8000/embed/dense",
+  "chat_memory":"basic",
+  "cache_db": "rag_cache",
+  "qdrant_url": "http://127.0.0.1:6333",
+  "redis_uri": "redis",
+  "hash_db": "admin_log",
+  "LLM_URL": "http://172.30.14.32:5000/v1",
+  "max_token": 400,
+  "collection": "assessment",
+  "vectorsize": 1024
+}

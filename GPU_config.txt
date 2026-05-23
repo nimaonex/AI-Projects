@@ -1,0 +1,1 @@
+8k context (3 req per sec) 24GB GPU

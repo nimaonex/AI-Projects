@@ -1,0 +1,12 @@
+py -m pip install -i https://mirror-pypi.runflare.com/simple/ chroma
+
+run fastapi in bash:
+    1- python -m venv venv #beuil env
+    2- source venv/Scripts/activate #activate env
+    3- install fastapi, uvicorn in env
+    4- uvicorn main:app --reload #run application
+    5- uvicorn main:app --reload --log-level info
+
+qdrant in wsl when using docker:
+docker run -p 6333:6333 -v qdrant_data:/qdrant/storage qdrant/qdrant 
+

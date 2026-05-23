@@ -1,0 +1,7 @@
+R aquare: coefficent of determination
+SSr: least square for errors
+SSt: least square for averages
+R**2 = 1 - SSr/SSt
+Perfect fit is R**2 = 1
+
+when we add new variables, SSt doesn't change but SSr decreases or stay the same

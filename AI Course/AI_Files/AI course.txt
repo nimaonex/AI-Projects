@@ -1,0 +1,371 @@
+List complementations:
+list_numbers = [i+j for i in range(2)for j in range(5)]
+list_numbers = [[i+j for i in range(2)]for j in range(5)]
+L = lambda x: x+1
+text = ['This Is NIMA']
+ls = [x.lower() for x in text]
+
+import nltk
+from nltk.corpus import stopwords
+en_stpwrds = stopwords.words('english')
+sentence = ""
+x = ' '.join([w for w in sentence.split() if w not in en_stpwrds])
+en_stpwrds.remove('some words') or en_stpwrds.append('some words') to change in stopwords
+
+import re
+"c:\test\notes"
+r"c:\test\notes"  r means raw, it is not special character
+re.search re.sub
+
+tokenaziation:
+nltk.download('punk_tab')
+from nltk.tokenize import word_tokenize, sent tokenize
+
+stemming:
+from nltk.stem import PorterStemmer
+ps = PorterStemmer()
+tokens = ['connection', 'connecting', 'connected']
+for t in tokens:
+    print(t, ": ", ps.stem(t))
+#sometimes output doesn't meaningful
+
+lemmatization:
+nltk.download('wordnet')
+from nltk.stem import WordNetLemmatizer
+lem = WordNetLemmatizer()
+tokens = ['better', 'worse', 'bad', 'good', 'likes']
+for t in tokens:
+    print(t,": ",lem.lemmatize(t))
+
+ngrams:
+import pandas as pd
+import nltk
+tokens = ['this', 'is', 'Nima', 'he', 'is', 'the', 'father', 'of', 'Nelin', 'Nima', 'is', 'a', 'real', 'manager']
+unigrams = (pd.Series(nltk.ngrams(tokens,1)).value_counts())
+print(unigrams)
+
+POS tagging and entity recognition:
+spaCy and NER
+https://maktabkhooneh.org/course/%D8%A8%D9%88%D8%AA%DA%A9%D9%85%D9%BE-%D9%85%D9%87%D9%86%D8%AF%D8%B3%DB%8C-%D9%87%D9%88%D8%B4-%D9%85%D8%B5%D9%86%D9%88%D8%B9%DB%8C-mk12973/%D8%A8%D8%AE%D8%B4-%D9%BE%D8%B1%D8%AF%D8%A7%D8%B2%D8%B4-%D8%B2%D8%A8%D8%A7%D9%86-%D8%B7%D8%A8%DB%8C%D8%B9%DB%8C-nlp-%D8%B4%D9%86%D8%A7%D8%B3%D8%A7%DB%8C%DB%8C-%D8%A7%D8%AC%D8%B2%D8%A7%DB%8C-%D8%AC%D9%85%D9%84%D9%87-%D9%85%D9%88%D8%AC%D9%88%D8%AF-ch32226/%D8%AA%D8%B1%DB%8C%D9%86-%D8%B9%D9%85%D9%84%DB%8C-%D8%A8%D8%B1%DA%86%D8%B3%D8%A8%DA%AF%D8%B0%D8%A7%D8%B1%DB%8C-%D8%A7%D8%AC%D8%B2%D8%A7%DB%8C-%DA%A9%D9%84%D8%A7%D9%85-pos-%D8%B4%D9%86%D8%A7%D8%AE%D8%AA-%D9%85%D9%88%D8%AC%D9%88%D8%AF%DB%8C%D8%AA%D9%87%D8%A7%DB%8C-%D9%86%D8%A7%D9%85%D8%AF%D8%A7%D8%B1-ner/
+
+sentiment analysis:
+range from -1 to 1
+
+textblob, vader
+from textblob import TextBlob
+x = TextBlob(sentence)
+print(x.sentiment.polarity)
+
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyser
+x = SentimentIntensityAnalyser()
+x.polarity_scores(sentence)
+
+pre-trained transformer
+#handle complex sentences
+from transformers import pipeline
+x = pipeline("sentiment-analysis") #default model
+#you will receive a warning, it is also use CPU instead of GPU
+x(sentences)
+
+#to improve the results, we need better models, find it through huging face
+x = pipeline("sentiment-analysis", model = "")
+https://maktabkhooneh.org/course/%D8%A8%D9%88%D8%AA%DA%A9%D9%85%D9%BE-%D9%85%D9%87%D9%86%D8%AF%D8%B3%DB%8C-%D9%87%D9%88%D8%B4-%D9%85%D8%B5%D9%86%D9%88%D8%B9%DB%8C-mk12973/%D8%A8%D8%AE%D8%B4-%D9%BE%D8%B1%D8%AF%D8%A7%D8%B2%D8%B4-%D8%B2%D8%A8%D8%A7%D9%86-%D8%B7%D8%A8%DB%8C%D8%B9%DB%8C-nlp-%D8%AA%D8%AD%D9%84%DB%8C%D9%84-%D8%A7%D8%AD%D8%B3%D8%A7%D8%B3%D8%A7%D8%AA-ch32227/%D8%AA%D9%85%D8%B1%DB%8C%D9%86-%D8%B9%D9%85%D9%84%DB%8C/
+
+TF-IDF #vectorizing text
+import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
+data = ['I am learning basics in AI to become an expert', 'AI will be everything in future']
+x = CountVectorizer()
+y = x.fit_transform(data)
+df = pd.DataFrame(y.toarray(), columns = x.get_feature_names_out())
+print(df)
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+x = TfidfVectorizer()
+y = x.fit_transform(data)
+df = pd.DataFrame(y.toarray(), columns = x.get_feature_names_out())
+print(df)
+
+Topic Modeling #unsupervised learning
+#dirichlet distribution
+pip install gensim #text analysis
+import gensim
+import gensim.corpora
+a DataFrame, as each line is without puntuation, stopwords and with tokenaziation and stemming
+dic = corpora.Dictionary(DataFrame)
+x = [dic.doc2bow(t) for t in DataFrame] #list complementations
+lda = gensim.models.LdaModel(corpus=x, id2word=dic, num_topics=2)
+lda.print_topics(num_topics = 2, num_words = 5)
+
+from gensim.models import LsiModel
+lsimodel = LsiModel(x, num_topics = 2, id2word = dic)
+print(lsimodel.print_topics(num_topics = 2, num_words = 5))
+
+#coherent score, how meaningful words in a topic as a group together
+from gensim.models.coherencemodel import CoherenceModel
+https://maktabkhooneh.org/course/%D8%A8%D9%88%D8%AA%DA%A9%D9%85%D9%BE-%D9%85%D9%87%D9%86%D8%AF%D8%B3%DB%8C-%D9%87%D9%88%D8%B4-%D9%85%D8%B5%D9%86%D9%88%D8%B9%DB%8C-mk12973/%D8%A8%D8%AE%D8%B4-%D9%BE%D8%B1%D8%AF%D8%A7%D8%B2%D8%B4-%D8%B2%D8%A8%D8%A7%D9%86-%D8%B7%D8%A8%DB%8C%D8%B9%DB%8C-nlp-%D9%85%D8%AF%D9%84%D8%B3%D8%A7%D8%B2%DB%8C-%D9%85%D9%88%D8%B6%D9%88%D8%B9%D8%A7%D8%AA-ch32229/%D8%AA%D8%B9%DB%8C%DB%8C%D9%86-%D8%AA%D8%B9%D8%AF%D8%A7%D8%AF-%D9%85%D9%88%D8%B6%D9%88%D8%B9%D8%A7%D8%AA/
+
+generate text with openai api key
+import openai
+openai.api_key = "key"
+def generate_text(propmt, max_tokens, temprature):
+    response = openai.completion.create(
+      engine = "davinci-002",
+      prompt = prompt,
+      max_tokens = max_tokens,
+      temprature = temprature
+    )
+     return response.choices[0].text.strip()
+propmt = "once upon a time ..."
+x = generate_text(prompt,10,0)
+#temprature near 0 means more simple and near 1 means more random sentences
+#use openai api play ground
+
+summarize text
+def summarizer_text(prompt, max_tokens, temprature):
+    response = openai.chatcompletion.create(
+      model = "gpt-3.5-turbo",
+      max_tokens = max_tokens,
+      temprature = temprature,
+      messages = [
+        {
+          "role" : "system"
+          "content" : "..."
+        },
+        {
+          "role" : "user"
+          "content" : "..."
+        },
+        {
+          "role" : "assistant"
+          "content" : "..."
+        },
+        .
+        .
+        .
+        {
+          "role" : "user"
+          "content" : prompt
+        }]
+    )
+    return response.choices[0].message.content.strip()
+
+hugging face transformers
+https://maktabkhooneh.org/course/%D8%A8%D9%88%D8%AA%DA%A9%D9%85%D9%BE-%D9%85%D9%87%D9%86%D8%AF%D8%B3%DB%8C-%D9%87%D9%88%D8%B4-%D9%85%D8%B5%D9%86%D9%88%D8%B9%DB%8C-mk12973/%D8%A8%D8%AE%D8%B4-%D9%85%D8%AF%D9%84%D9%87%D8%A7%DB%8C-%D8%B2%D8%A8%D8%A7%D9%86%DB%8C-%D8%A8%D8%B2%D8%B1%DA%AF-llms-%D8%AA%D8%B1%D9%86%D8%B3%D9%81%D9%88%D8%B1%D9%85%D8%B1%D9%87%D8%A7%DB%8C-hugging-ch32236/%D9%85%D8%B3%DB%8C%D8%B1-%D9%BE%D8%B1%D8%AF%D8%A7%D8%B2%D8%B4-%D8%AA%D8%B1%D9%86%D8%B3%D9%81%D9%88%D8%B1%D9%85%D8%B1-transformer-pipeline/
+
+pre-trained tokenizer
+from transformers import AutoTokenizer
+model = "bert-base-uncased"
+x = AutoTokenizer.from_pretrained(model)
+sentence = ""
+tokens = x.tokenizer(sentence)
+ids = x.convert_tokens_to_ids(tokens)
+decode_ids = x.decode(ids)
+
+model2 = "xlnet-base-cased"
+
+#special tokens
+CLS and SEP: classification , separator
+MASK
+and other custom tokens
+
+hugging face and pytorch
+from transformer import AutoTokenizer, AutoModelForSequenceClassification
+import torch
+tokenizer = AutoTokenizer.from_pretrained("distilbert-case-uncased-finetuned-sst-2-english")
+input_ids_pt = tokenizer(sentence, return_tensors="pt")
+model = AutoModelForSequenceClassification.from_pretrained("distilbert-case-uncased-finetuned-sst-2-english")
+with torch.no_grad():
+    logits = model(**input_ids_pt).logits
+
+predicted_class_id = logits.argmax().item()
+model.config.id2label[predicted_class_id]
+
+model_directory = "My_saved_models"
+tokenizer.save_pretrained(model_directory)
+model.save_pretrained(model_directory)
+my_tokenizer = AutoTokenizer.from_pretrained(model_directory)
+my_model = AutoModelForSequenceClassification.from_pretrained(model_directory)
+
+BERT:
+pre-trained model that uses transformer architecture to process and understand natural language
+BERT base (110M P), BERT large (340M P)
+BERT is bidirectional context understanding, good for missing words by considering left and right context.(sentiment analysis, question-answering, named entity recognition)
+GPT is Autoregressive. means predict next word based on the preceding words. (conversations, chatbots)
+BERT uses encoder part of transformer architecture because it is not for sequence-sequence tasks
+
+from transformers import BertForQuestionAnswering, BertTokenizer
+import torch
+model_name = "bert-large-uncased-whole-word-masking-finetuned-squad"
+model = BertForQuestionAnswering.from_pretrained(model_name)
+tokenizer = BertTokenizer.from_pretrained(model_name)
+
+#embedding
+question = ""
+answer = ""
+encoding = tokenizer.encode_plus(text=question, text_pair=answer)
+print(encoding)
+input = encoding['input_ids']
+sentence_embedding = encoding['token_type_ids']
+tokens = tokenizer.convert_ids_to_tokens(input)
+output = model(input_ids=torch.tensor([input]), token_type_ids=torch.tensor([sentence_embedding]))
+
+FAQ BERT:
+long_text = ""
+def faq_bot(question):
+    context = long_text
+    input_ids = tokenizer.encode(question, context)
+    tokens = tokenizer.convert_ids_to_tokens(input_ids)
+    sep_idx = input_ids.index(tokenizer.sep_token_id)
+    num_seg_a = sep_idx + 1
+    num_seg_b = len(input_ids) - num_seg_a
+    segment_ids = [0]*num_seg_a + [1]*num_seg_b
+    output = model(torch.tensor([input_ids]), token_type_ids=torch.tensor([segment_ids]))
+    answer_start = torch.argmax(output.start_logits)
+    answer_end = torch.argmax(output.end_logits)
+    if answer_end >= answer_start:
+        answer = ' '.join(tokens[answer_start:asnwer_end+1])
+    else:
+        print("I don't know how to answer this question")
+    corrected_asnwer = ''
+    for word in answer.split():
+        if word[0:2] == '##'
+            corrected_asnwer += word[2:]
+        else:
+            corrected_asnwer += ' ' + word
+    return corrected_asnwer
+
+other BERT models:
+RoBERTa: Improved version of BERT
+DistilBERT: light weight version of BERT
+
+from transformers import RobertaTokenizer, RobertaModel
+model_name = "roberta-base"
+
+XlNet: based on decoder architecture. overcome the limitations of GPT. such as considering the entire sequence, capture long range dependencies
+XLNet Base (110M P)
+XLNet Large (340M p)
+
+LangChain:
+client = openai.OpenAI()
+completion = client.chat.completions.create(model="gpt-4",
+                                            messages = [{'role':'user','content':''''''},{...}]
+                                            max_tokens = ,
+                                            temprature = ,
+                                            #seed = 365,
+                                            stream = True)
+for i in completion:
+    print(i.choices[0].delta.content, end = "")
+
+print(completion.choices[0].message.content)
+
+from LangChain_openai.chat_models import ChatOpenAI
+from LangChain_core.messages import HumanMessage, AIMessage
+chat = ChatOpenAI(model_name = "gpt-4", temprature = 0, max_tokens = 250)
+res = chat.invoke('')
+print(res.content)
+
+humanM = HumanMessage(content = '''''')
+res = chat.invoke([humanM])
+print(res.content)
+
+systemM = SystemMessage(content='''you are a chatbot that answer with lots of excitement''')
+re = chat.invoke([systemM, humanM])
+print(res.content)
+
+few-shot prompting:
+give moedel a set of example responses to learn
+AIM = AIMessage(content = '''add an example''')
+humanM_ex = HumanMessage(content = '''add an example''')
+re = chat.invoke([humanM, AIM, humanM_ex])
+print(res.content)
+#we can add more example to invoke
+#but we need abstraction for better results
+
+abstraction:
+from LangChain_core.propmts import PromptTemplate
+TEMPLATE = '''
+    system: {description}
+    Human: I have recently adopt a {pet}.
+    could you suggest some {pet} names?
+'''
+pt = PromptTemplate.from_template(template = TEMPLATE)
+
+****
+PromptTemplate accept dictionary and return PromptValue
+ChatOpenAI accept String, List of chat messages and return AIMessage
+****
+prompt_value = pt.invoke({'description':'''the chatbot should answer with excitement ''',
+'pet':'dog'})
+prompt_value
+
+
+from LangChain_core.propmts.chat import (SystemMessagePromptTemplate,
+                                         HumanMessagePromptTemplate,
+                                         ChatPromptTemplate)
+chat = ChatOpenAI(model_name = "gpt-4", temprature = 0, max_tokens = 250)
+T_S = '{description}'
+T_H = '''I have recently adopmted a {pet}. could you suggest some {pet} names?'''
+M_T_S = SystemMessagePromptTemplate.from_template(template = T_S)
+M_T_H = HumanMessagePromptTemplate.from_template(template = T_H)
+chat_template = ChatPromptTemplate.from_messages([M_T_S, M_T_H])
+chat_value = chat_template.invoke(
+{'description':'''the chatbot should answer the question with sarcastic response''',
+              'pet':'dog'
+})
+res = chat.invoke(chat_value)
+#chatopenai.invoke() accept   string - list of chat messages - PromptValue
+
+ChatPromptTemplate accept dictionary and return chatpromptvalue
+ChatOpenAI accept chatpromptvalue and return AIMessage
+
+from LangChain_core.prompts import FewShotChatMessagePromptTemplate
+#repeat the preceding codes
+T_S = '{response}'
+T_H = '''I have recently adopmted a {pet}. could you suggest some {pet} names?'''
+M_T_Ai = AIMessagePromptTemplate.from_template(template = T_Ai)
+M_T_H = HumanMessagePromptTemplate.from_template(template = T_H)
+chat_template = ChatPromptTemplate.from_messages([M_T_H, T_Ai])
+ex = [{'pet':'dog',
+       'response': '''add response you expect here'''},
+      {'pet':'cat',
+       'response': '''add response you expect here'''}]
+few_shot = FewShotChatMessagePromptTemplate(examples = ex, example_prompt = chat_template, input_variables = ['pet'])
+chat_t = ChatPromptTemplate.from_messages([few_shot, T_H])
+chat_v = chat_t.invoke({'pet':{'rabbit'}})
+
+for i in chat_v.messages:
+    print(f'{i.type}: {i.content}\n')
+res = chat.invoke(chat_v)
+
+output parsers:
+string:
+from LangChain_core.output_parsers import StrOutputParser
+response = chat.invoke([human_message])
+str = StrOutputParser()
+response_parsed = str.invoke(response)
+
+comma-separated list: (when we need list based on the responses)
+from LangChain_core.output_parsers import CommaSeparatedListOutputParser
+
+human_message = HumanMessage(content = f'''add text here
+{CommaSeparatedListOutputParser().get_format_instructions()}
+''')
+list_output_parser = CommaSeparatedListOutputParser()
+response = chat.invoke([human_message])
+response_parsed = list_output_parser.invoke(response)
+response
+
+datetime:
+from langchain.output_parsers import DateTimeOutputParser
+human_message = HumanMessage(content = f'''when was ...
+{DateTimeOutputParser().get_format_instructions()}
+''')
+response = chat.invoke([human_message])
+date_parser = DateTimeOutputParser()
+response_parsed = date_parser.invoke(response) #datetime object
+
+langchain expression language, pipeline:
+invoke: linking the components
+stream: print tokens as soon as generated
+batch: control and handle more than one input
