@@ -6,6 +6,7 @@ from PromptBuilder import build_rag_prompt
 from LLM_Client import generate
 import logging
 from utils import load_config
+from typing import Optional
 
 log = logging.getLogger(__name__)
 config = load_config()
@@ -17,10 +18,12 @@ class AskRequest(BaseModel):
     top_k: int = config["top_k_documents"]
     max_tokens: int = config["max_token"]
     temperature: float = config["temperature"]
+    session_id: Optional[str] = None
 
     
 @router.post("/ask")
 def ask(req: AskRequest):
+       # db: Session = Depends(get_db)):  load_recent_history(db=db ...
     q = (req.question or "").strip()
 
     if not q:        

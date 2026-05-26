@@ -12,15 +12,15 @@ load_dotenv(override=True)
 def generate(prompt: str, max_tokens: int = config["max_token"], temperature: float = config["temperature"]):
 
     client = OpenAI(
-    base_url = config["LLM_URL"],
-    api_key = os.getenv("API_KEY")
-    ) 
+                    base_url = config["LLM_URL"],
+                    api_key = os.getenv("API_KEY")
+                    ) 
     
     try:
         response = client.chat.completions.create(
                     model=config["ai_model"],
                     messages=[
-                        {"role": "system", "content": "You are a helpful assistant."},
+                        #{"role": "system", "content": "You are a helpful assistant."},
                         {"role": "user", "content": prompt}
                     ],
                     stream=False,

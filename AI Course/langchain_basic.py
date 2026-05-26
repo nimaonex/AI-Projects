@@ -11,9 +11,9 @@ from langchain_core.output_parsers import (StrOutputParser,
 #from langchain.output_parsers import DateTimeOutputParser
 
 llm = ChatOpenAI(
-    base_url="http://localhost:1234/v1",
+    base_url="http://localhost:1234/api/v1",
     api_key="not-needed",
-    model="qwen2.5-3b-instruct",
+    model="google/gemma-3-4b",
     temperature=0,
     max_completion_tokens=250
 )
