@@ -1,9 +1,30 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from urllib.parse import quote_plus
 from datetime import datetime, UTC
-from LLM_Client import generate
 from langchain_openai.chat_models import ChatOpenAI 
+from langchain_core.prompts import (
+    ChatPromptTemplate,
+    MessagesPlaceholder
+)
+from langchain_core.messages import (
+    HumanMessage,
+    AIMessage
+)
+from sqlalchemy.orm import (
+    declarative_base,
+    sessionmaker,
+    Session
+)
+from sqlalchemy import (
+    Column,
+    BigInteger,
+    String,
+    Text,
+    DateTime,
+    create_engine
+)
+from sqlalchemy.exc import SQLAlchemyError
+
+
 
 ###############################################################################################################
 llm = ChatOpenAI(
@@ -15,6 +36,7 @@ llm = ChatOpenAI(
 )
 ###############################################################################################################
 #SQLAlchemy Connection
+
 params = quote_plus(
     "DRIVER={ODBC Driver 17 for SQL Server};"
     "SERVER=localhost;"
@@ -34,20 +56,19 @@ SessionLocal = sessionmaker(
     autoflush=False,
     autocommit=False
 )
+
+def get_db():
+
+    db = SessionLocal()
+
+    try:
+        yield db
+
+    finally:
+        db.close()
 ###############################################################################################################
 #Models
-from sqlalchemy import (
-    Column,
-    BigInteger,
-    String,
-    Text,
-    DateTime
-)
-
-from sqlalchemy.orm import declarative_base
-
 Base = declarative_base()
-
 
 class ChatMessage(Base):
     __tablename__ = "ChatMessages"
@@ -68,14 +89,13 @@ class ConversationSummary(Base):
 
 ###############################################################################################################
 #Save Messages
-from sqlalchemy.orm import Session
-
 def save_message(
     db: Session,
     session_id: str,
     role: str,
     content: str
 ) -> None:
+    
     msg = ChatMessage(
         sessionid=session_id,
         role=role,
@@ -85,23 +105,9 @@ def save_message(
 
     db.add(msg)
 
-#maybe needed in future for "Instead of manually creating sessions inside every endpoint"
-# from fastapi import Depends
-# @router.post("/ask")
-# def ask(
-#     req: AskRequest,
-#     db: Session = Depends(get_db)
-# ):
-
 ###############################################################################################################
 #Load Recent History
-from langchain_core.messages import (
-    HumanMessage,
-    AIMessage
-)
-
-
-def load_recent_history(
+def load_recent_messages(
     db: Session,
     session_id: str,
     max_chars: int = 8000
@@ -142,25 +148,22 @@ def load_recent_history(
     for row in rows:
 
         if row.role == "user":
-            messages.append(
-                HumanMessage(
-                    content=row.content
-                )
+            messages.append( f"{row.role}: {row.content}"
+                # HumanMessage(
+                #     content=row.content
+                # )
             )
 
         elif row.role == "system":
-            messages.append(
-                AIMessage(
-                    content=row.content
-                )
+            messages.append(f"{row.role}: {row.content}"
+                # AIMessage(
+                #     content=row.content
+                # )
             )
 
-    return messages
+    return "\n".join(messages)
 
 ###############################################################################################################
-
-from sqlalchemy.exc import SQLAlchemyError
-
 def load_summary(
     db: Session,
     session_id: str
@@ -185,12 +188,6 @@ def load_summary(
         return ""
 ###############################################################################################################
 
-
-from langchain_core.prompts import (
-    ChatPromptTemplate,
-    MessagesPlaceholder
-)
-
 def rewrite_question(history: str, question: str, summary: str) -> str:
 
     rewrite_prompt = ChatPromptTemplate.from_messages(
@@ -202,6 +199,7 @@ def rewrite_question(history: str, question: str, summary: str) -> str:
 
     Conversation Summary: {summary}
 
+    Conversation History: {history}
     Instructions:
         - Use the summary and chat history to understand references.
         - Preserve the original meaning.
@@ -210,9 +208,9 @@ def rewrite_question(history: str, question: str, summary: str) -> str:
     """
             ),
 
-            MessagesPlaceholder(
-                variable_name="chat_history"
-            ),
+            # MessagesPlaceholder(
+            #     variable_name="chat_history"
+            # ),
 
             ("human", "{question}")
         ]
@@ -225,7 +223,7 @@ def rewrite_question(history: str, question: str, summary: str) -> str:
 
     return rewrite_chain.invoke(
         {
-            "chat_history": history, #load_recent_history
+            "history": history, #load_recent_history
             "question": question, 
             "summary": summary #load_summary
         }
@@ -233,103 +231,51 @@ def rewrite_question(history: str, question: str, summary: str) -> str:
 
 # next step: embed(rewrite_question)
 # based on the function above, search qdrant -> build context -> answer prompt -> generating answer -> again save message
+
 ###############################################################################################################
-#update summary every 20 messages
-def should_update_summary(
+def summarize_conversation(
     db: Session,
     session_id: str
 ):
-    count = (
-        db.query(ChatMessage)
-        .filter(
-            ChatMessage.sessionid == session_id
-        )
-        .count()
+
+    summary_prompt = ChatPromptTemplate.from_template(
+    """
+    summarize the latest user questions and system answers by incorporating
+    current summary and the new lines of conversation below.
+    so that the result reflects the most recent context and developments.
+
+    Current Summary: {current_summary}
+
+    Conversation: {conversation}
+
+    Update the summary.
+
+    Rules:
+    - Keep important facts.
+    - Keep user goals and topics.
+    - Remove repetition.
+    - Maximum 200 words.
+
+    Updated Summary:
+    """
     )
 
-    return count % 20 == 0
+    summary_chain = (
+        summary_prompt
+        | llm
+    )
+
+    current_summary = load_summary(db=db, session_id=session_id)
+    conversation = load_recent_messages(db=db, session_id=session_id)
+
+    return summary_chain.invoke(
+            {
+                "current_summary": current_summary,
+                "conversation": conversation
+            }
+        ).content
+
 ###############################################################################################################
-
-# def create_summary():
-
-#     summary_instructions = f'''
-#     update the ongoing summary by incorporating the new lines of conversation below.
-#     build upon the pervious summary rather than repeating it so that the result reflects the most recent context
-#     and developments
-
-#     pervious summary:
-#     {state.get("summary", "")}
-
-#     '''
-#     print(summary_instructions)
-
-#     summary = llm.invoke([HumanMessage(summary_instructions)])
-
-#     return State(messages= remove_messages, summary= summary.content)
-
-
-
-from sqlalchemy.orm import Session
-
-def get_messages_for_summary(
-    db: Session,
-    session_id: str,
-    max_messages: int = 20
-) -> str:
-
-    rows = (
-        db.query(ChatMessage)
-        .filter(
-            ChatMessage.sessionid == session_id
-        )
-        .order_by(
-            ChatMessage.createdat.asc()
-        )
-        .limit(max_messages)
-        .all()
-    )
-
-    lines = []
-
-    for row in rows:
-
-        lines.append(
-            f"{row.role}: {row.content}"
-        )
-
-    return "\n".join(lines)
-
-
-from langchain_core.prompts import ChatPromptTemplate
-
-summary_prompt = ChatPromptTemplate.from_template(
-"""
-Current Summary:
-
-{current_summary}
-
-Conversation:
-
-{conversation}
-
-Update the summary.
-
-Rules:
-- Keep important facts.
-- Keep user goals and topics.
-- Remove repetition.
-- Maximum 200 words.
-
-Updated Summary:
-"""
-)
-
-summary_chain = (
-    summary_prompt
-    | llm
-)
-
-
 def save_summary(
     db: Session,
     session_id: str,
@@ -339,7 +285,7 @@ def save_summary(
     row = (
         db.query(ConversationSummary)
         .filter(
-            ConversationSummary.session_id == session_id
+            ConversationSummary.sessionid == session_id
         )
         .first()
     )
@@ -347,9 +293,9 @@ def save_summary(
     if row is None:
 
         row = ConversationSummary(
-            session_id=session_id,
+            sessionid=session_id,
             summary=summary_text,
-            updated_at=datetime.now(UTC)
+            updatedat=datetime.now(UTC)
         )
 
         db.add(row)
@@ -357,6 +303,40 @@ def save_summary(
     else:
 
         row.summary = summary_text
-        row.updated_at = datetime.now(UTC)
+        row.updatedat = datetime.now(UTC)
 
     db.commit()
+    db.close()
+
+
+
+
+    ###############################################################################################################
+
+# def get_messages_for_summary(
+#     db: Session,
+#     session_id: str,
+#     max_messages: int = 20
+# ) -> str:
+
+#     rows = (
+#         db.query(ChatMessage)
+#         .filter(
+#             ChatMessage.sessionid == session_id
+#         )
+#         .order_by(
+#             ChatMessage.createdat.desc() #default was asc
+#         )
+#         .limit(max_messages)
+#         .all()
+#     )
+
+#     lines = []
+
+#     for row in rows:
+
+#         lines.append(
+#             f"{row.role}: {row.content}"
+#         )
+
+#     return "\n".join(lines)
