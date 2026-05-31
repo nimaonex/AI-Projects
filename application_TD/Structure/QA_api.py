@@ -6,7 +6,6 @@ from PromptBuilder import build_rag_prompt
 from LLM_Client import generate
 import logging
 from utils import load_config
-from typing import Optional
 from chat_history import (
     save_message,
     load_summary,
@@ -30,7 +29,7 @@ class AskRequest(BaseModel):
     top_k: int = config["top_k_documents"]
     max_tokens: int = config["max_token"]
     temperature: float = config["temperature"]
-    sessionid: str = None
+    sessionid: str
 
     
 @router.post("/ask")
@@ -94,11 +93,13 @@ def ask(req: AskRequest,
                 "chunk_index": payload.get("chunk_index", None),
             })
 
-        prompt = build_rag_prompt(question=q, 
+        prompt = build_rag_prompt(
+                                question=Modified_question, 
                                 contexts=contexts
                                 )
         
-        answer = generate(prompt, 
+        answer = generate(
+                        prompt, 
                         max_tokens=req.max_tokens, 
                         temperature=req.temperature
                         )

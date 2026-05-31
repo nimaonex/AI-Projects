@@ -23,16 +23,31 @@ from sqlalchemy import (
     create_engine
 )
 from sqlalchemy.exc import SQLAlchemyError
+from utils import load_config
+import os
+from dotenv import load_dotenv
 
 
 
+config = load_config()
+load_dotenv(override=True)
 ###############################################################################################################
+#LMStudio llm
+# llm = ChatOpenAI(
+#     base_url="http://localhost:1234/v1",
+#     api_key="not-needed",
+#     model="google/gemma-3-4b",
+#     temperature=0,
+#     max_completion_tokens=250
+# )
+
+
 llm = ChatOpenAI(
-    base_url="http://localhost:1234/v1",
-    api_key="not-needed",
-    model="google/gemma-3-4b",
-    temperature=0,
-    max_completion_tokens=250
+    base_url=config["LLM_URL"],
+    api_key=os.getenv("API_KEY"),
+    model=config["ai_model"],
+    temperature=config["temperature"],
+    max_completion_tokens=config["max_token"]
 )
 ###############################################################################################################
 #SQLAlchemy Connection
